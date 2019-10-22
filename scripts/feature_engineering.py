@@ -1,55 +1,148 @@
 # -*- coding: utf-8 -*-
-"""some functions to be used to derive features."""
+"""
+Created on Tue Oct 22 12:39:22 2019
+
+@author: Rick Wang
+"""
 
 import numpy as np
 
-#Compute Transverse Mass (need to be modifed)
-def transverse_mass(a_t,a_phi,b_t,b_phi):
-    
-    
-    mass = np.sqrt((a_t+b_t)**2-(a_t*np.cos(a_phi)+b_t*np.cos(b_phi))**2-(a_t*np.sin(a_phi)+b_t*np.sin(b_phi))**2)
-    
-    
-    return mass
-
-#Compute Invariant mass
-def invariant_mass(a_t,a_eta,a_phi,b_t,b_eta,b_phi):
-    a_z = a_t*np.sinh(a_eta)
-    b_z = b_t*np.sinh(b_eta)
-    
-    a_xyz = np.sqrt(a_t**2+(a_z)**2)
-    b_xyz = np.sqrt(b_t**2+(b_z)**2)
-    ab_x = a_t*np.cos(a_phi)+b_t*np.cos(b_phi)
-    ab_y =a_t*np.sin(a_phi)+b_t*np.sin(b_phi)
-    ab_z =a_z+b_z
-    
-    
-    mass = np.sqrt((a_xyz+b_xyz)**2-(ab_x)**2-(ab_y)**2-(ab_z)**2)
-    
-    return mass
-
-#Compute Modulus of Vector Sum
-def modulus_vector(a_t,a_phi,b_t,b_phi,c_met,c_phi):
-    
-    x = a_t*np.cos(a_phi)+b_t*np.cos(b_phi)+c_met*np.cos(c_phi)
-    y = a_t*np.sin(a_phi)+b_t*np.sin(b_phi)+c_met*np.sin(c_phi)
-    
-    
-    p_t = np.sqrt(x**2+y**2)
-    
-    modulus = p_t*1.0
-    return modulus
+undefined = -999
 
 
-#Compute Pseudorapidity Separation
-def pseudorapidity_separation(jet_num,leading_eta,subleading_eta):
+
+def compute_particle_component (particle_t, particle_eta, particle_phi):
+    '''
+    Description: This function takes the transverse momentum and its azimuth
+angle and outputs the x component of momentum vector.
     
+    Arguments:
+        
+    particle_t - the transverse momentum of praticles
+
+    particle_eta - the pseudorapidity of the transverse momentum of a particle
     
-    N = len(leading_eta)
-    sep = np.zeros(N)
-    for t in range(N):
-        if(jet_num[t]<=1):
-            sep[t] = -999
-        else:
-            sep[t] = np.abs(leading_eta[t] - subleading_eta[t])
-    return sep
+    particle_phi - the azimuth angle of the transverse momentum of a particle    
+    
+    Output:
+    
+    1. x component of the momentum vector
+    2. y component of the momentum vector
+    3. z component of the momentum vector
+    
+    '''
+    
+    #get the length of particle_t
+    length = len(particle_t)
+    
+    #create an array to store the x, y, z component of each particle
+    particle_x = np.zeros(length)
+    particle_y = np.zeros(length)
+    particle_z = np.zeros(length)
+    
+    #get the valid index of particle (if the value is not -999 then it's valid)
+    valid_index = (particle_t != undefined)
+    
+    #compute the x, y, z component for valid index
+    particle_x[valid_index] = (particle_t[valid_index]
+                               * np.cos(particle_phi[valid_index]))
+    particle_y[valid_index] = (particle_t[valid_index]
+                               * np.sin(particle_phi[valid_index]))    
+    particle_z[valid_index] = (particle_t[valid_index]
+                               * np.sinh(particle_eta[valid_index]))    
+    #set undefined for invalid ones
+    particle_x[~valid_index] = undefined
+    particle_y[~valid_index] = undefined
+    particle_z[~valid_index] = undefined
+    
+    #return the results
+    return particle_x, particle_y, particle_z
+
+def particle_energy(particle_t,particle_eta,particle_phi):
+    '''
+    Description: This function takes the transverse momentum, its azimuth
+angle and pseudorapidity then outputs the energy of the particle.
+        
+    Arguments:
+        
+    particle_t - the transverse momentum of praticles
+
+    particle_eta - the pseudorapidity of the transverse momentum of a particle
+
+    particile_phi - the azimuth angle of the transverse momentum of a particle    
+    
+    Output:
+    
+    1. the energy of the particle
+    
+    '''
+    
+    #get the length of particle_t
+    length = len(particle_t)
+    
+    #create an array to store the energy of the particle
+    energy = np.zeros(length)
+    
+    #get the valid index of particle (if the value is not -999)
+    valid_index = (particle_t!=-999)
+    
+    #compute each component of particle
+    px, py, pz = compute_particle_component(particle_t, 
+                                             particle_eta, particle_phi)
+    #compute energy for valid index
+    energy[valid_index] = np.sqrt(px[valid_index]**2
+                                  + py[valid_index]**2
+                                  + pz[valid_index]**2)
+    
+    #set undefined for invalid ones
+    energy[~valid_index] = undefined
+    
+    #return the results
+    return energy
+
+def cross_product (particle_t_1, particle_eta_1, particle_phi_1
+                   particle_t_2, particle_eta_2, particle_phi_2):
+    '''
+    Description: This function takes two different particles' transverse 
+momentum vector then outputs the cross product of two vectors.
+        
+    Arguments:
+        
+    particle_t_1 - the transverse momentum of praticle 1
+
+    particle_eta_1 - the pseudorapidity of the transverse momentum of 
+particle 1
+
+    particile_phi_1 - the azimuth angle of the transverse momentum of 
+particle 1
+
+    particle_t_2 - the transverse momentum of praticle 2
+
+    particle_eta_2 - the pseudorapidity of the transverse momentum of 
+particle 2
+
+    particile_phi_2 - the azimuth angle of the transverse momentum of 
+particle 2   
+    
+    Output:
+    
+    1. the cross product of two vectors
+    
+    '''    
+    
+    #get the length of particle_t_1 and particle_t_2
+    length = len(particle_t_1)
+    
+    #create arrays to store each component of cross product of two vectors
+    cp_x = np.zeros(length)
+    cp_y = np.zeros(length)
+    cp_z = np.zeros(length)
+    
+    #compute each component of two vectors
+    px_1, py_1, pz_1 = compute_particle_component(particle_t_1, 
+                                                  particle_eta_1, 
+                                                  particle_phi_1)
+    px_2, py_2, pz_2 = compute_particle_component(particle_t_2,
+                                                  particle_eta_2,
+                                                  paticle_phi_2)
+    
