@@ -460,9 +460,77 @@ particle 2
     
     Output:
     
-    1. the transverse mass of two particles
+    1. the invariant mass of two particles
     
-    '''    
+    '''
+    #get the length of particle 1 and 2
+    length = len(particle_t_1)
+    
+    #create an array to store mass
+    mass = np.zeros(length)
+    
+    #find the valid index
+    valid_index = (particle_t_1!=undefined)&(particle_t_2!=undefined)
+    
+    #compute some temporary variables
+    pz_1 = particle_t_1[valid_index]*np.sinh(particle_eta_1[valid_index])
+    pz_2 = particle_t_2[valid_index]*np.sinh(particle_eta_2[valid_index])
+    
+    x_12 = particle_t_1[valid_index]*np.cos(particle_phi_1[valid_index])
+             + particle_t_2[valid_index]*np.cos(particle_phi_2[valid_index])
+    y_12 = particle_t_1[valid_index]*np.sin(particle_phi_1[valid_index])
+             + particle_t_2[valid_index]*np.sin(particle_phi_2[valid_index])
+    z_12 = pz_1 + pz_2
+    pxyz_1 = np.sqrt(particle_t_1[valid_index]**2+(pz_1)**2)
+    pxyz_2 = np.sqrt(particle_t_2[valid_index]**2+(pz_2)**2)
+    
+    #compute invariant mass
+    mass[valid_index] = np.sqrt((pxyz_1+pxyz_2)**2
+                                 -(x_12)**2
+                                 -(y_12)**2
+                                 -(z_12)**2))))
+    mass[~valid_index] = undefined
+    
+    return mass
+
+def phase_subtract(particle_phi_1,particle_phi_2):
+    '''
+    Description: This function takes two particles' transverse 
+momentum vector then outputs the invariant mass
+        
+    Arguments:
+        
+
+    particile_phi_1 - the azimuth angle of the transverse momentum of 
+particle 1
+
+    particile_phi_2 - the azimuth angle of the transverse momentum of 
+particle 2        
+    
+    Output:
+    
+    1. the subtraction of these two features
+    '''
+    
+    #get the length of particle 1 and 2
+    length = len(particle_phi_1)
+    
+    #create an array to store the subtraction
+    subtraction = np.zeros(length)
+    
+    #find the valid index
+    valid_index = (particle_phi_1!=undefined)&(particle_phi_2!=undefined)
+    
+    #compute subtraction
+    subtraction[valid_index] = particle_phi_1[valid_index]
+                               -particle_phi_2[valid_index]
+    subtraction[~valid_index] = undefined
+    
+    return result
+
+
+    
+            
     
     
     
